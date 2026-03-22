@@ -115,10 +115,11 @@ output wire trig_out
 reg trig_s;
 
   assign trig_out = trig_s;
-  always @(posedge clk) begin : p1
-    reg [31:0] count_up = 0;
+  reg [31:0] count_up = 0;
   //-comptarem els flancs de clk de 10mhz que tindrem trig='1'
-    reg [31:0] count_t = 0;
+  reg [31:0] count_t = 0;
+  always @(posedge clk) begin : p1
+
   //-comptarem els flancs de clk de 10mhz per controlar el període total del trigger
 
     if((rst == 1'b1)) begin
