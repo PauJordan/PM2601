@@ -1,28 +1,28 @@
 
 
 module top(
-input wire CLK,
-input wire RST,
-input wire ENABLE,
-input wire ECHO,
-input wire START_STOP,
-input wire SW_aux,
-output wire TRIG,
-output wire ECHO_COPIA,
-output wire [3:0] XIF,
-output wire [3:0] XIF_COPIA,
-output wire [7:0] SSEG,
-output wire [10:0] DISTANCIA,
-output wire SPI_SCLK,
-output wire SPI_MOSI
+input wire clk,
+input wire rst,
+input wire enable,
+input wire echo,
+input wire start_stop,
+input wire sw_aux,
+output wire trig,
+output wire echo_copia,
+output wire [3:0] xif,
+output wire [3:0] xif_copia,
+output wire [7:0] sseg,
+output wire [10:0] distancia,
+output wire spi_sclk,
+output wire spi_mosi
 );
 
 
 
 
-//Components
-// Senyals
-wire CLK_petit; wire trig_s; wire enable_s; wire refresh_s; wire polsador_s; wire c_rst; wire c_e;
+//components
+// senyals
+wire clk_petit; wire trig_s; wire enable_s; wire refresh_s; wire polsador_s; wire c_rst; wire c_e;
 wire [11:0] hex_num;
 wire [11:0] bcd_num;
 wire [1:0] error_s;
@@ -31,114 +31,114 @@ wire [15:0] disp_s;  // signal test_num : std_logic_vector(15 downto 0);
   // test_num (11 downto 0) <= bcd_num;
   // test_num (15 downto 12) <= "0000";
   // passtrough
-  assign ECHO_COPIA = ECHO;
-  assign TRIG = trig_s;
-  assign DISTANCIA = disp_s[10:0];
-  // Mapeig blocs
-  trigger_gen TRIGGER_GEN_1(
-    //10MHz ok
-    .RST(RST),
-    .CLK(CLK),
-    .ENABLE_TRIG(enable_s),
-    .TRIG_OUT(trig_s));
+  assign echo_copia = echo;
+  assign trig = trig_s;
+  assign distancia = disp_s[10:0];
+  // mapeig blocs
+  trigger_gen trigger_gen_1(
+    //10mhz ok
+    .rst(rst),
+    .clk(clk),
+    .enable_trig(enable_s),
+    .trig_out(trig_s));
 
-  ENABLE_CTL ENABLE_CTL_1(
-    //10MHz ok
-    .CLK(CLK),
-    .E_OUT(enable_s),
-    .TRIG(trig_s),
-    .ECHO(ECHO),
-    .SW_E(ENABLE),
-    .POLSADOR(START_STOP),
-    .CLK_10k(CLK_petit),
-    .RST(RST),
-    .C_DST_RST(c_rst),
-    .C_DST_E(c_e),
-    .ERR(error_s),
-    .REFRESH_D(refresh_s));
+  enable_ctl enable_ctl_1(
+    //10mhz ok
+    .clk(clk),
+    .e_out(enable_s),
+    .trig(trig_s),
+    .echo(echo),
+    .sw_e(enable),
+    .polsador(start_stop),
+    .clk_10k(clk_petit),
+    .rst(rst),
+    .c_dst_rst(c_rst),
+    .c_dst_e(c_e),
+    .err(error_s),
+    .refresh_d(refresh_s));
 
-  c999 C999_1(
-    .CLK(CLK),
-    .RST(c_rst),
-    .E(c_e),
-    .bcdDIST(bcd_num),
-    .hexDIST(hex_num));
+  c999 c999_1(
+    .clk(clk),
+    .rst(c_rst),
+    .e(c_e),
+    .bcddist(bcd_num),
+    .hexdist(hex_num));
 
   clk_10k clk_10k_1(
-    .CLK(CLK),
-    .RST(RST),
-    .CLK_OUT(CLK_petit));
+    .clk(clk),
+    .rst(rst),
+    .clk_out(clk_petit));
 
   display display_1(
-    .SW(disp_s),
-    .E(1'b0),
-    .RST(RST),
-    .CLK(CLK_petit),
-    .SSEG(SSEG),
-    .XIF(XIF),
-    .XIFRA_TEST(XIF_COPIA),
-    .ACTIU(enable_s),
-    .ERR(error_s));
+    .sw(disp_s),
+    .e(1'b0),
+    .rst(rst),
+    .clk(clk_petit),
+    .sseg(sseg),
+    .xif(xif),
+    .xifra_test(xif_copia),
+    .actiu(enable_s),
+    .err(error_s));
 
   display_ctrl display_ctrl_1(
-    .CLK(CLK),
-    .RST(RST),
-    .SW_DX(SW_aux),
-    .REFRESH(refresh_s),
-    .bcdDIST(bcd_num),
-    .hexDIST(hex_num),
-    .DISP_OUT(disp_s));
+    .clk(clk),
+    .rst(rst),
+    .sw_dx(sw_aux),
+    .refresh(refresh_s),
+    .bcddist(bcd_num),
+    .hexdist(hex_num),
+    .disp_out(disp_s));
 
   spi_out spi_out_1(
-    .CLK(CLK),
-    .RST(RST),
-    .TRIGGER(refresh_s),
-    .DATA(disp_s[10:0]),
-    .SCLK(SPI_SCLK),
-    .MOSI(SPI_MOSI));
+    .clk(clk),
+    .rst(rst),
+    .trigger(refresh_s),
+    .data(disp_s[10:0]),
+    .sclk(spi_sclk),
+    .mosi(spi_mosi));
 
 
 endmodule
-// COMPONENTS
+// components
 // triger_gen
 
-module TRIGGER_GEN(
-input wire CLK,
-input wire RST,
-input wire ENABLE_TRIG,
-output wire TRIG_OUT
+module trigger_gen(
+input wire clk,
+input wire rst,
+input wire enable_trig,
+output wire trig_out
 );
 
 
 
 
-reg TRIG_s;
+reg trig_s;
 
-  assign TRIG_OUT = TRIG_s;
-  always @(posedge CLK) begin : P1
-    reg [31:0] COUNT_UP = 0;
-  //-Comptarem els flancs de CLK de 10MHz que tindrem TRIG='1'
-    reg [31:0] COUNT_T = 0;
-  //-Comptarem els flancs de CLK de 10MHz per controlar el període total del trigger
+  assign trig_out = trig_s;
+  always @(posedge clk) begin : p1
+    reg [31:0] count_up = 0;
+  //-comptarem els flancs de clk de 10mhz que tindrem trig='1'
+    reg [31:0] count_t = 0;
+  //-comptarem els flancs de clk de 10mhz per controlar el període total del trigger
 
-    if((RST == 1'b1)) begin
-      TRIG_s <= 1'b0;
-      COUNT_UP = 0;
-      COUNT_T = 249899;
+    if((rst == 1'b1)) begin
+      trig_s <= 1'b0;
+      count_up = 0;
+      count_t = 249899;
     end
-    else if((ENABLE_TRIG == 1'b1)) begin
-      if((TRIG_s == 1'b0)) begin
-        COUNT_T = COUNT_T + 1;
-        if((COUNT_T >= 249900)) begin
-          COUNT_T = 0;
-          TRIG_s <= 1'b1;
+    else if((enable_trig == 1'b1)) begin
+      if((trig_s == 1'b0)) begin
+        count_t = count_t + 1;
+        if((count_t >= 249900)) begin
+          count_t = 0;
+          trig_s <= 1'b1;
         end
       end
       else begin
-        COUNT_UP = COUNT_UP + 1;
-        if((COUNT_UP >= 100)) begin
-          COUNT_UP = 0;
-          TRIG_s <= 1'b0;
+        count_up = count_up + 1;
+        if((count_up >= 100)) begin
+          count_up = 0;
+          trig_s <= 1'b0;
         end
       end
     end
@@ -149,150 +149,150 @@ endmodule
 // /triger gen
 // enable_ctl
 
-module ENABLE_CTL(
-input wire CLK,
-input wire CLK_10k,
-input wire RST,
-input wire SW_E,
-input wire TRIG,
-input wire ECHO,
-input wire POLSADOR,
-output wire E_OUT,
-output reg C_DST_RST,
-output reg C_DST_E,
-output wire REFRESH_D,
-output reg [1:0] ERR,
-output reg [3:0] ESTAT
+module enable_ctl(
+input wire clk,
+input wire clk_10k,
+input wire rst,
+input wire sw_e,
+input wire trig,
+input wire echo,
+input wire polsador,
+output wire e_out,
+output reg c_dst_rst,
+output reg c_dst_e,
+output wire refresh_d,
+output reg [1:0] err,
+output reg [3:0] estat
 );
 
-//-RST
-//-ENABLE
-//-TRIG_s
-//-ECHO
-//-START_STOP
-//-ENABLE_S
-//-C_RST
-//-C_E
-//-REFRESH_S
+//-rst
+//-enable
+//-trig_s
+//-echo
+//-start_stop
+//-enable_s
+//-c_rst
+//-c_e
+//-refresh_s
 
 
 
 parameter [2:0]
-  S0 = 0,
-  S1 = 1,
-  S2 = 2,
-  S3 = 3,
-  S4 = 4,
-  S5 = 5;
+  s0 = 0,
+  s1 = 1,
+  s2 = 2,
+  s3 = 3,
+  s4 = 4,
+  s5 = 5;
 
-reg [2:0] STATE;
-reg [3:0] CT_OOR;
-reg OOR_FLANK;
-reg CT_ERR_ENABLE;
-reg CT_ERR_RST;
-reg REFRESH_D_S;
+reg [2:0] state;
+reg [3:0] ct_oor;
+reg oor_flank;
+reg ct_err_enable;
+reg ct_err_rst;
+reg refresh_d_s;
 reg a; reg b; reg echo_petit;
 wire e_out_s; wire on_out_s;
 
-  assign E_OUT = e_out_s;
-  assign REFRESH_D = REFRESH_D_S;
-  assign e_out_s = on_out_s & SW_E;
+  assign e_out = e_out_s;
+  assign refresh_d = refresh_d_s;
+  assign e_out_s = on_out_s & sw_e;
   on_off onoff(
-    .POLSADOR(POLSADOR),
+    .polsador(polsador),
     .on_out(on_out_s),
-    .RST(RST),
-    .CLK(CLK));
+    .rst(rst),
+    .clk(clk));
 
-  always @(posedge CLK_10k, posedge CT_ERR_RST) begin
-    if((CT_ERR_RST == 1'b1)) begin
-      OOR_FLANK <= 1'b0;
-      CT_OOR <= 4'b0000;
+  always @(posedge clk_10k, posedge ct_err_rst) begin
+    if((ct_err_rst == 1'b1)) begin
+      oor_flank <= 1'b0;
+      ct_oor <= 4'b0000;
     end else begin
-      if((CT_ERR_ENABLE == 1'b1)) begin
-        if((CT_OOR == 4'b1111)) begin
-          CT_OOR <= 4'b0000;
-          OOR_FLANK <= 1'b1;
-          //-Out of range
+      if((ct_err_enable == 1'b1)) begin
+        if((ct_oor == 4'b1111)) begin
+          ct_oor <= 4'b0000;
+          oor_flank <= 1'b1;
+          //-out of range
         end
         else begin
-          CT_OOR <= CT_OOR + 1;
+          ct_oor <= ct_oor + 1;
         end
       end
     end
   end
 
-  always @(posedge CLK) begin
+  always @(posedge clk) begin
     echo_petit <= b;
     b <= a;
-    a <= ECHO;
+    a <= echo;
   end
 
-  always @(posedge CLK) begin
-    if((RST == 1'b1)) begin
-      STATE <= S0;
-      C_DST_RST <= 1'b1;
-      CT_ERR_RST <= 1'b1;
-      ERR <= 2'b00;
+  always @(posedge clk) begin
+    if((rst == 1'b1)) begin
+      state <= s0;
+      c_dst_rst <= 1'b1;
+      ct_err_rst <= 1'b1;
+      err <= 2'b00;
     end else if((e_out_s == 1'b1)) begin
-      case(STATE)
-      S0 : begin
-        ESTAT <= 4'h0;
-        C_DST_E <= 1'b0;
-        C_DST_RST <= 1'b0;
-        CT_ERR_RST <= 1'b0;
-        CT_ERR_ENABLE <= 1'b0;
-        REFRESH_D_S <= 1'b0;
-        if((TRIG == 1'b1 && e_out_s == 1'b1)) begin
-          STATE <= S1;
+      case(state)
+      s0 : begin
+        estat <= 4'h0;
+        c_dst_e <= 1'b0;
+        c_dst_rst <= 1'b0;
+        ct_err_rst <= 1'b0;
+        ct_err_enable <= 1'b0;
+        refresh_d_s <= 1'b0;
+        if((trig == 1'b1 && e_out_s == 1'b1)) begin
+          state <= s1;
         end
       end
-      S1 : begin
-        ESTAT <= 4'h1;
-        CT_ERR_RST <= 1'b1;
-        if((TRIG == 1'b0)) begin
-          STATE <= S2;
+      s1 : begin
+        estat <= 4'h1;
+        ct_err_rst <= 1'b1;
+        if((trig == 1'b0)) begin
+          state <= s2;
         end
       end
-      S2 : begin
-        ESTAT <= 4'h2;
-        CT_ERR_ENABLE <= 1'b1;
-        C_DST_RST <= 1'b1;
-        CT_ERR_RST <= 1'b0;
+      s2 : begin
+        estat <= 4'h2;
+        ct_err_enable <= 1'b1;
+        c_dst_rst <= 1'b1;
+        ct_err_rst <= 1'b0;
         if((echo_petit == 1'b1)) begin
-          STATE <= S3;
+          state <= s3;
         end
-        if((OOR_FLANK == 1'b1)) begin
-          STATE <= S4;
+        if((oor_flank == 1'b1)) begin
+          state <= s4;
         end
       end
-      S3 : begin
-        ESTAT <= 4'h3;
-        C_DST_RST <= 1'b0;
-        C_DST_E <= 1'b1;
-        CT_ERR_ENABLE <= 1'b0;
-        if((TRIG == 1'b1)) begin
-          STATE <= S5;
+      s3 : begin
+        estat <= 4'h3;
+        c_dst_rst <= 1'b0;
+        c_dst_e <= 1'b1;
+        ct_err_enable <= 1'b0;
+        if((trig == 1'b1)) begin
+          state <= s5;
         end
         if((echo_petit == 1'b0)) begin
-          STATE <= S0;
-          REFRESH_D_S <= 1'b1;
-          ERR <= 2'b00;
+          state <= s0;
+          refresh_d_s <= 1'b1;
+          err <= 2'b00;
         end
       end
-      S4 : begin
-        ESTAT <= 4'h4;
-        ERR <= 2'b01;
-        STATE <= S0;
+      s4 : begin
+        estat <= 4'h4;
+        err <= 2'b01;
+        state <= s0;
       end
-      S5 : begin
-        ESTAT <= 4'h5;
-        ERR <= 2'b10;
+      s5 : begin
+        estat <= 4'h5;
+        err <= 2'b10;
         if((echo_petit == 1'b0)) begin
-          STATE <= S0;
+          state <= s0;
         end
       end
       default : begin
-        STATE <= S0;
+        state <= s0;
       end
       endcase
     end
@@ -303,10 +303,10 @@ endmodule
 //- component on_off
 
 module on_off(
-input wire CLK,
-input wire RST,
-input wire POLSADOR,
-output wire ON_out
+input wire clk,
+input wire rst,
+input wire polsador,
+output wire on_out
 );
 
 
@@ -320,15 +320,15 @@ parameter [1:0]
 reg [1:0] estat;
 reg on_out_s;
 
-  assign ON_out = on_out_s;
-  always @(posedge CLK) begin
-    if((RST == 1'b1)) begin
+  assign on_out = on_out_s;
+  always @(posedge clk) begin
+    if((rst == 1'b1)) begin
       estat <= np;
       on_out_s <= 1'b0;
     end else
     case(estat)
     np : begin
-      if((POLSADOR == 1'b1)) begin
+      if((polsador == 1'b1)) begin
         estat <= p0;
         on_out_s <=  ~(on_out_s);
       end
@@ -337,7 +337,7 @@ reg on_out_s;
       estat <= p1;
     end
     p1 : begin
-      if((POLSADOR == 1'b0)) begin
+      if((polsador == 1'b0)) begin
         estat <= np;
       end
     end
@@ -352,14 +352,14 @@ endmodule
 // /on_off
 // /enable_ctl
 // c999
-// Definicio entitats
+// definicio entitats
 
 module c999(
-input wire E,
-input wire CLK,
-input wire RST,
-output wire [11:0] bcdDIST,
-output wire [11:0] hexDIST
+input wire e,
+input wire clk,
+input wire rst,
+output wire [11:0] bcddist,
+output wire [11:0] hexdist
 );
 
 
@@ -369,19 +369,19 @@ reg [12:0] s;
 reg [3:0] u; reg [3:0] d; reg [3:0] c;
 reg [11:0] hex;
 
-  assign hexDIST = hex;
-  assign bcdDIST[3:0] = u;
-  assign bcdDIST[7:4] = d;
-  assign bcdDIST[11:8] = c;
-  always @(posedge CLK) begin
-    if((RST == 1'b1)) begin
+  assign hexdist = hex;
+  assign bcddist[3:0] = u;
+  assign bcddist[7:4] = d;
+  assign bcddist[11:8] = c;
+  always @(posedge clk) begin
+    if((rst == 1'b1)) begin
       s <= 13'b0000000000000;
       hex <= 12'h000;
       u <= 4'h0;
       d <= 4'h0;
       c <= 4'h0;
     end
-    else if((E == 1'b1)) begin
+    else if((e == 1'b1)) begin
       if((s >= 579)) begin
         s <= 13'b0000000000000;
         hex <= hex + 1;
@@ -405,32 +405,32 @@ reg [11:0] hex;
 endmodule
 // /c999
 // clk_10k
-// Definicio entitats
+// definicio entitats
 
 module clk_10k(
-input wire CLK,
-input wire RST,
-output wire CLK_OUT
+input wire clk,
+input wire rst,
+output wire clk_out
 );
 
 
 
 
-reg [12:0] S;
-reg CLK_out_s;
+reg [12:0] s;
+reg clk_out_s;
 
-  assign CLK_OUT = CLK_out_s;
-  always @(posedge CLK) begin
-    if((RST == 1'b1)) begin
-      S <= 13'b0000000000000;
-      CLK_out_s <= 1'b0;
+  assign clk_out = clk_out_s;
+  always @(posedge clk) begin
+    if((rst == 1'b1)) begin
+      s <= 13'b0000000000000;
+      clk_out_s <= 1'b0;
     end
-    else if((S == 499)) begin
-      S <= 13'b0000000000000;
-      CLK_out_s <=  ~(CLK_out_s);
+    else if((s == 499)) begin
+      s <= 13'b0000000000000;
+      clk_out_s <=  ~(clk_out_s);
     end
     else begin
-      S <= S + 1;
+      s <= s + 1;
     end
   end
 
@@ -440,32 +440,32 @@ endmodule
 // display_ctrl
 
 module display_ctrl(
-input wire CLK,
-input wire RST,
-input wire SW_DX,
-input wire REFRESH,
-input wire [11:0] bcdDIST,
-input wire [11:0] hexDIST,
-output reg [15:0] DISP_OUT
+input wire clk,
+input wire rst,
+input wire sw_dx,
+input wire refresh,
+input wire [11:0] bcddist,
+input wire [11:0] hexdist,
+output reg [15:0] disp_out
 );
 
 
 
 
-reg [11:0] lastBCD; reg [11:0] lastHEX;
+reg [11:0] lastbcd; reg [11:0] lasthex;
 
-  always @(posedge CLK) begin
-    if((REFRESH == 1'b1)) begin
-      lastBCD <= bcdDIST;
-      lastHEX <= hexDIST;
+  always @(posedge clk) begin
+    if((refresh == 1'b1)) begin
+      lastbcd <= bcddist;
+      lasthex <= hexdist;
     end
   end
 
   always @(*) begin
-    DISP_OUT[15:12] = 4'b0000;
-    case(SW_DX)
-      1'b1 : DISP_OUT[11:0] = lastHEX;
-      default : DISP_OUT[11:0] = lastBCD;
+    disp_out[15:12] = 4'b0000;
+    case(sw_dx)
+      1'b1 : disp_out[11:0] = lasthex;
+      default : disp_out[11:0] = lastbcd;
     endcase
   end
 
@@ -474,86 +474,86 @@ endmodule
 // display
 
 module display(
-input wire CLK,
-input wire RST,
-input wire E,
-input wire ACTIU,
-input wire [1:0] ERR,
-input wire [15:0] SW,
-output wire [3:0] XIF,
-output wire [3:0] XIFRA_TEST,
-output wire [7:0] SSEG,
-output wire CLK_TEST,
-output wire PRESC_TEST,
-output wire [1:0] SSEG_TEST
+input wire clk,
+input wire rst,
+input wire e,
+input wire actiu,
+input wire [1:0] err,
+input wire [15:0] sw,
+output wire [3:0] xif,
+output wire [3:0] xifra_test,
+output wire [7:0] sseg,
+output wire clk_test,
+output wire presc_test,
+output wire [1:0] sseg_test
 );
 
 
 
 
 // delcaracio blocs:
-// Senyals interconectadores de blocs
-wire [3:0] xif_act_bcd; wire [3:0] xif_sel; wire [3:0] B4_c10_out;
+// senyals interconectadores de blocs
+wire [3:0] xif_act_bcd; wire [3:0] xif_sel; wire [3:0] b4_c10_out;
 wire [7:0] xif_act_seg;
 wire [1:0] xif_act_num; wire [1:0] aux_s;
-wire enable; wire B5_d9_out; wire B6_c4_enable;
+wire enable; wire b5_d9_out; wire b6_c4_enable;
 
-  assign CLK_TEST = CLK;
+  assign clk_test = clk;
   // clock pass-trough
-  assign PRESC_TEST = B6_c4_enable;
-  assign SSEG = xif_act_seg;
-  assign SSEG_TEST = xif_act_seg[7:6];
-  assign XIF = xif_sel;
-  assign XIFRA_TEST = xif_sel;
-  assign enable =  ~(E);
-  assign B6_c4_enable = enable & B5_d9_out;
+  assign presc_test = b6_c4_enable;
+  assign sseg = xif_act_seg;
+  assign sseg_test = xif_act_seg[7:6];
+  assign xif = xif_sel;
+  assign xifra_test = xif_sel;
+  assign enable =  ~(e);
+  assign b6_c4_enable = enable & b5_d9_out;
   // connexionat blocs
-  m16x4 B1(
-    .actiu(ACTIU),
-    .err(ERR),
-    .dAux(aux_s),
-    .dIn(SW),
-    .dControl(xif_act_num),
-    .dOut(xif_act_bcd));
+  m16x4 b1(
+    .actiu(actiu),
+    .err(err),
+    .daux(aux_s),
+    .din(sw),
+    .dcontrol(xif_act_num),
+    .dout(xif_act_bcd));
 
-  bcdto7seg B2(
-    .DATA_IN(xif_act_bcd),
-    .SSEG(xif_act_seg),
-    .AUX_IN(aux_s));
+  bcdto7seg b2(
+    .data_in(xif_act_bcd),
+    .sseg(xif_act_seg),
+    .aux_in(aux_s));
 
-  d2x4 B3(
-    .dIn(xif_act_num),
-    .dOut(xif_sel));
+  d2x4 b3(
+    .din(xif_act_num),
+    .dout(xif_sel));
 
-  c10 B4(
-    .CLK(CLK),
-    .E(enable),
-    .RST(RST),
-    .DOUT(B4_c10_out));
+  c10 b4(
+    .clk(clk),
+    .e(enable),
+    .rst(rst),
+    .dout(b4_c10_out));
 
-  d9 B5(
-    .dIn(B4_c10_out),
-    .dOut(B5_d9_out));
+  d9 b5(
+    .din(b4_c10_out),
+    .dout(b5_d9_out));
 
-  c4 B6(
-    .CLK(CLK),
-    .E(B6_c4_enable),
-    .RST(RST),
-    .DOUT(xif_act_num));
+  c4 b6(
+    .clk(clk),
+    .e(b6_c4_enable),
+    .rst(rst),
+    .dout(xif_act_num));
 
 
 endmodule
-//COMPONENTS------------------------------
+//components------------------------------
 //m4x4to4
 // mux 4x4 to 4
 
 module m16x4(
 input wire actiu,
-input wire [15:0] dIn,
-input wire [1:0] dControl,
+input wire [15:0] din,
+input wire [1:0] dcontrol,
 input wire [1:0] err,
-output reg [3:0] dOut,
-output reg [1:0] dAux
+output reg [3:0] dout,
+output reg [1:0] daux
 );
 
 
@@ -562,79 +562,79 @@ output reg [1:0] dAux
 wire [23:0] data;
 
   always @(*) begin
-    case(dControl)
-      2'b00 : dOut <= data[3:0];
-      2'b01 : dOut <= data[7:4];
-      2'b10 : dOut <= data[11:8];
-      2'b11 : dOut <= data[15:12];
-      default : dOut <= 4'b0000;
+    case(dcontrol)
+      2'b00 : dout <= data[3:0];
+      2'b01 : dout <= data[7:4];
+      2'b10 : dout <= data[11:8];
+      2'b11 : dout <= data[15:12];
+      default : dout <= 4'b0000;
     endcase
   end
 
   always @(*) begin
-    case(dControl)
-      2'b00 : dAux <= data[17:16];
-      2'b01 : dAux <= data[19:18];
-      2'b10 : dAux <= data[21:20];
-      2'b11 : dAux <= data[23:22];
-      default : dAux <= 2'b00;
+    case(dcontrol)
+      2'b00 : daux <= data[17:16];
+      2'b01 : daux <= data[19:18];
+      2'b10 : daux <= data[21:20];
+      2'b11 : daux <= data[23:22];
+      default : daux <= 2'b00;
     endcase
   end
 
-  // normal Axxx, -xxx
-  // err X Eo, X Es
-  assign data[15:12] = (actiu == 1'b1) ? 4'b1010 : dIn[15:12];
-  //Xifra 3 A quan actiu, din
-  assign data[11:0] = (err == 2) ? 12'h0E0 : (err == 1) ? 12'h0E5 : (err == 0) ? dIn[11:0] : 12'h0E0;
-  //Xifra 2 sempre dIn, Xifra 1, e quan err, XIfra 0 5 quan err 1 sino normal
+  // normal axxx, -xxx
+  // err x eo, x es
+  assign data[15:12] = (actiu == 1'b1) ? 4'b1010 : din[15:12];
+  //xifra 3 a quan actiu, din
+  assign data[11:0] = (err == 2) ? 12'h0e0 : (err == 1) ? 12'h0e5 : (err == 0) ? din[11:0] : 12'h0e0;
+  //xifra 2 sempre din, xifra 1, e quan err, xifra 0 5 quan err 1 sino normal
   assign data[23:22] = (actiu == 1'b0) ? 2'b01 : 2'b00;
-  //Xifra 3 aux - quan inactiu, desactivat
+  //xifra 3 aux - quan inactiu, desactivat
   assign data[21:20] = (err == 0) ? 2'b00 : 2'b11;
-  // Xifra 2 aux blanc quan err, blanc
+  // xifra 2 aux blanc quan err, blanc
   assign data[19:18] = 2'b00;
-  // Xifra 1 aux sempre desactivat
+  // xifra 1 aux sempre desactivat
   assign data[17:16] = (err == 2) ? 2'b10 : (err == 3) ? 2'b11 : 2'b00;
-    //Xifra 0 aux o quan err 2
+    //xifra 0 aux o quan err 2
 
 endmodule
 // /m4x4to4
 // bcto7seg
-// Definicio entitats
+// definicio entitats
 // decoder bcd a 7 segments
 
 module bcdto7seg(
-input wire [3:0] DATA_IN,
-input wire [1:0] AUX_IN,
-output wire [7:0] SSEG
+input wire [3:0] data_in,
+input wire [1:0] aux_in,
+output wire [7:0] sseg
 );
 
 
 
 
-reg [7:0] S;
+reg [7:0] s;
 
   always @(*) begin
-    case(DATA_IN)
-      4'd0:  S = 8'b01111110;
-      4'd1:  S = 8'b00110000;
-      4'd2:  S = 8'b01101101;
-      4'd3:  S = 8'b01111001;
-      4'd4:  S = 8'b00110011;
-      4'd5:  S = 8'b01011011;
-      4'd6:  S = 8'b01011111;
-      4'd7:  S = 8'b01110000;
-      4'd8:  S = 8'b01111111;
-      4'd9:  S = 8'b01111011;
-      4'd10: S = 8'b01110111;
-      4'd11: S = 8'b00011111;
-      4'd12: S = 8'b01001110;
-      4'd13: S = 8'b00111101;
-      4'd14: S = 8'b01001111;
-      4'd15: S = 8'b01000111;
-      default: S = 8'b00000000;
+    case(data_in)
+      4'd0:  s = 8'b01111110;
+      4'd1:  s = 8'b00110000;
+      4'd2:  s = 8'b01101101;
+      4'd3:  s = 8'b01111001;
+      4'd4:  s = 8'b00110011;
+      4'd5:  s = 8'b01011011;
+      4'd6:  s = 8'b01011111;
+      4'd7:  s = 8'b01110000;
+      4'd8:  s = 8'b01111111;
+      4'd9:  s = 8'b01111011;
+      4'd10: s = 8'b01110111;
+      4'd11: s = 8'b00011111;
+      4'd12: s = 8'b01001110;
+      4'd13: s = 8'b00111101;
+      4'd14: s = 8'b01001111;
+      4'd15: s = 8'b01000111;
+      default: s = 8'b00000000;
     endcase
   end
-  assign SSEG = AUX_IN == 0 ?  ~(S) : (AUX_IN == 1) ? 8'b11111101 : (AUX_IN == 2) ? 8'b11000101 : 8'b11111111;
+  assign sseg = aux_in == 0 ?  ~(s) : (aux_in == 1) ? 8'b11111101 : (aux_in == 2) ? 8'b11000101 : 8'b11111111;
 
 endmodule
 // /bcdto7seg
@@ -642,78 +642,78 @@ endmodule
 // decoder 2x4
 
 module d2x4(
-input wire [1:0] dIn,
-output wire [3:0] dOut
+input wire [1:0] din,
+output wire [3:0] dout
 );
 
 
 
 
 
-  assign dOut = (dIn == 2'b00) ? 4'b1110 : (dIn == 2'b01) ? 4'b1101 : (dIn == 2'b10) ? 4'b1011 : (dIn == 2'b11) ? 4'b0111 : 4'b1111;
+  assign dout = (din == 2'b00) ? 4'b1110 : (din == 2'b01) ? 4'b1101 : (din == 2'b10) ? 4'b1011 : (din == 2'b11) ? 4'b0111 : 4'b1111;
 
 endmodule
 ///d2x4
 // c10
-// Definicio entitats
+// definicio entitats
 
 module c10(
-input wire E,
-input wire CLK,
-input wire RST,
-output wire [3:0] DOUT
+input wire e,
+input wire clk,
+input wire rst,
+output wire [3:0] dout
 );
 
 
 
 
-reg [3:0] S;
+reg [3:0] s;
 
-  always @(posedge CLK, posedge RST) begin
-    if((RST == 1'b1)) begin
-      S <= 4'b0000;
+  always @(posedge clk, posedge rst) begin
+    if((rst == 1'b1)) begin
+      s <= 4'b0000;
     end else begin
-      if((E == 1'b1)) begin
-        if((S == 4'b1001)) begin
-          S <= 4'b0000;
+      if((e == 1'b1)) begin
+        if((s == 4'b1001)) begin
+          s <= 4'b0000;
         end
         else begin
-          S <= S + 1;
+          s <= s + 1;
         end
       end
     end
   end
 
-  assign DOUT = S;
+  assign dout = s;
 
 endmodule
 // /c10
 // c4
-// Definicio entitats
+// definicio entitats
 
 module c4(
-input wire E,
-input wire RST,
-input wire CLK,
-output wire [1:0] DOUT
+input wire e,
+input wire rst,
+input wire clk,
+output wire [1:0] dout
 );
 
 
 
 
-reg [1:0] S;
+reg [1:0] s;
 
-  always @(posedge CLK, posedge RST) begin
-    if((RST == 1'b1)) begin
-      S <= 2'b00;
+  always @(posedge clk, posedge rst) begin
+    if((rst == 1'b1)) begin
+      s <= 2'b00;
     end else begin
-      if((E == 1'b1)) begin
-        S <= S + 1;
+      if((e == 1'b1)) begin
+        s <= s + 1;
       end
     end
   end
 
-  assign DOUT = S;
+  assign dout = s;
 
 endmodule
 // /c4
@@ -721,52 +721,52 @@ endmodule
 // decoder 9
 
 module d9(
-input wire [3:0] dIn,
-output wire dOut
+input wire [3:0] din,
+output wire dout
 );
 
 
 
 
 
-  assign dOut = (dIn == 4'b1001) ? 1'b1 : 1'b0;
+  assign dout = (din == 4'b1001) ? 1'b1 : 1'b0;
 
 endmodule
 // /d9
 ///display
 
 // spi_out
-// Serialises an 11-bit distance value over SPI (mode 0, MSB first) whenever
-// TRIGGER pulses. Data is padded to 16 bits (5 leading zeros).
-// SPI clock = 10 MHz / 8 = 1.25 MHz.
+// serialises an 11-bit distance value over spi (mode 0, msb first) whenever
+// trigger pulses. data is padded to 16 bits (5 leading zeros).
+// spi clock = 10 mhz / 8 = 1.25 mhz.
 
 module spi_out(
-input  wire        CLK,
-input  wire        RST,
-input  wire        TRIGGER,
-input  wire [10:0] DATA,
-output reg         SCLK,
-output wire        MOSI
+input  wire        clk,
+input  wire        rst,
+input  wire        trigger,
+input  wire [10:0] data,
+output reg         sclk,
+output wire        mosi
 );
 
 reg [2:0]  div;
 reg [15:0] shreg;
-reg [4:0]  cnt;     // counts SCLK edges: 32 edges = 16 bits
+reg [4:0]  cnt;     // counts sclk edges: 32 edges = 16 bits
 reg        busy;
 
-assign MOSI = shreg[15];
+assign mosi = shreg[15];
 
-always @(posedge CLK) begin
-  if (RST) begin
+always @(posedge clk) begin
+  if (rst) begin
     div   <= 3'd0;
-    SCLK  <= 1'b0;
+    sclk  <= 1'b0;
     shreg <= 16'd0;
     cnt   <= 5'd0;
     busy  <= 1'b0;
   end else if (!busy) begin
-    SCLK <= 1'b0;
-    if (TRIGGER) begin
-      shreg <= {5'b00000, DATA};
+    sclk <= 1'b0;
+    if (trigger) begin
+      shreg <= {5'b00000, data};
       div   <= 3'd0;
       cnt   <= 5'd0;
       busy  <= 1'b1;
@@ -774,10 +774,10 @@ always @(posedge CLK) begin
   end else begin
     if (div == 3'd3) begin
       div  <= 3'd0;
-      SCLK <= ~SCLK;
+      sclk <= ~sclk;
       cnt  <= cnt + 1'd1;
-      if (SCLK) begin
-        // falling edge: shift next bit onto MOSI
+      if (sclk) begin
+        // falling edge: shift next bit onto mosi
         shreg <= {shreg[14:0], 1'b0};
       end
       if (cnt == 5'd31) begin
