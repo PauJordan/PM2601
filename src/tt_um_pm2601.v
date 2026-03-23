@@ -37,7 +37,8 @@ module tt_um_pm2601 (
     wire [7:0]  sseg_w;
     wire [10:0] distancia_w;
     wire        spi_sclk_w;
-    wire        spi_mosi_w;
+    wire        spi_miso_w;
+    wire        spi_csn_w;
 
     // instantiate the converted core
     top core (
