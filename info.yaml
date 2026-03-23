@@ -49,9 +49,9 @@ pinout:
   uio[2]: "Digit 2"
   uio[3]: "Digit 3"
   uio[4]: "Trigger"
-  uio[5]: ""
+  uio[5]: "CSN"
   uio[6]: "SCLK"
-  uio[7]: "MOSI"
+  uio[7]: "MISO"
 
 # Do not change!
 yaml_version: 6
