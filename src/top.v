@@ -759,23 +759,22 @@ output wire        miso_en
 reg [15:0] shreg;
 reg last_sclk;
 
-assign busy = ~csn;
-
 always @(posedge clk) begin
   if (rst) begin
     shreg <= 16'd0;
 
-  end else if (!busy) begin
+  end else if (csn) begin
     if (trigger) begin
       shreg <= {5'b00000, data};
     end
   end else if (sclk && ~last_sclk) begin
-      shreg <= {shreg[14:0], 0'b0};
+      shreg <= {shreg[14:0], 1'b0};
   end
   last_sclk <= sclk;
-  miso <= shreg[15];
-  miso_en <= busy;
+  
 end
+assign miso_en =  ~csn;
+assign miso = shreg[15];
 
 endmodule
 // /spi_out
