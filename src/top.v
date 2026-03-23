@@ -746,48 +746,31 @@ input  wire        clk,
 input  wire        rst,
 input  wire        trigger,
 input  wire [10:0] data,
-output reg         sclk,
-output wire        mosi
+input wire         sclk,
+input wire         csn,
+output wire        miso,
+output wire        miso_en
 );
 
-reg [2:0]  div;
 reg [15:0] shreg;
-reg [4:0]  cnt;     // counts sclk edges: 32 edges = 16 bits
-reg        busy;
+reg last_sclk;
 
-assign mosi = shreg[15];
+assign busy = ~csn;
 
 always @(posedge clk) begin
   if (rst) begin
-    div   <= 3'd0;
-    sclk  <= 1'b0;
     shreg <= 16'd0;
-    cnt   <= 5'd0;
-    busy  <= 1'b0;
+
   end else if (!busy) begin
-    sclk <= 1'b0;
     if (trigger) begin
       shreg <= {5'b00000, data};
-      div   <= 3'd0;
-      cnt   <= 5'd0;
-      busy  <= 1'b1;
     end
-  end else begin
-    if (div == 3'd3) begin
-      div  <= 3'd0;
-      sclk <= ~sclk;
-      cnt  <= cnt + 1'd1;
-      if (sclk) begin
-        // falling edge: shift next bit onto mosi
-        shreg <= {shreg[14:0], 1'b0};
-      end
-      if (cnt == 5'd31) begin
-        busy <= 1'b0;
-      end
-    end else begin
-      div <= div + 1'd1;
-    end
+  end else if (sclk && ~last_sclk) begin
+      shreg <= {shreg[14:0], 0'b0};
   end
+  last_sclk <= sclk;
+  miso <= shreg[15];
+  miso_en <= busy;
 end
 
 endmodule
