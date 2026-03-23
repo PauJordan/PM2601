@@ -54,16 +54,19 @@ module tt_um_pm2601 (
         .sseg       (sseg_w),
         .distancia  (distancia_w),
         .spi_sclk   (spi_sclk_w),
-        .spi_mosi   (spi_mosi_w)
+        .spi_miso   (spi_miso_w),
+        .spi_miso_en (spi_miso_en_w),
+        .spi_csn    (spi_csn_w)
     );
 
     // output assignments
     assign uo_out  = sseg_w;
-
-    assign uio_out = {spi_mosi_w, spi_sclk_w, echo_copia_w, trig_w, xif_w};
-    assign uio_oe  = 8'hff;
+    assign spi_csn_w = uio_in[5];
+    assign spi_sclk_w = uio_in[6];
+    assign uio_out = {spi_miso_w, 2'b0, trig_w, xif_w};
+    assign uio_oe  = {spi_miso_en_w, 1'b0, 6'hff};
 
     // suppress unused signal warnings
-    wire _unused = &{ena, uio_in, xif_copia_w, distancia_w[10], 1'b0};
+    wire _unused = &{ena, xif_copia_w, distancia_w[10], 1'b0};
 
 endmodule

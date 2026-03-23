@@ -13,8 +13,10 @@ output wire [3:0] xif,
 output wire [3:0] xif_copia,
 output wire [7:0] sseg,
 output wire [10:0] distancia,
-output wire spi_sclk,
-output wire spi_mosi
+input wire spi_sclk,
+input wire spi_csn,
+output wire spi_miso,
+output wire spi_miso_en
 );
 
 
@@ -95,7 +97,9 @@ wire [15:0] disp_s;  // signal test_num : std_logic_vector(15 downto 0);
     .trigger(refresh_s),
     .data(disp_s[10:0]),
     .sclk(spi_sclk),
-    .mosi(spi_mosi));
+    .miso(spi_miso),
+    .miso_en(spi_miso_en),
+    .csn(spi_csn));
 
 
 endmodule
