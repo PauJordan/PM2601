@@ -32,13 +32,16 @@ measurement FSM.
 | `display` | 4-digit time-multiplexed 7-segment driver |
 | `bcdto7seg` | BCD to 7-segment decoder |
 | `on_off` | Debounced toggle FSM for the Start/Stop button |
-| `spi_out` | Serialises the 11-bit distance value over SPI (mode 0, 1.25 MHz, 16-bit frame) |
+| `spi_out` | SPI slave: exposes the 11-bit distance value for readout by an external master |
 
 ### SPI output
 
-On each completed measurement, the 11-bit distance value is transmitted over SPI as a 16-bit frame
-(`{5'b00000, DISTANCIA[10:0]}`), MSB first, SPI mode 0 (CPOL=0, CPHA=0), at 1.25 MHz.
-End of frame is detected by the receiver observing SCLK returning to idle-low after 16 cycles (no CS pin).
+The chip acts as a **SPI slave**. An external master (microcontroller, FPGA, etc.) drives SCLK and CSN and reads the distance value on MISO.
+
+- **Mode:** SPI mode 0 (CPOL=0, CPHA=0) — data sampled on rising SCLK edge
+- **Frame:** 16 bits, MSB first — `{5'b00000, DISTANCIA[10:0]}`
+- **Data latch:** the register is updated from the latest measurement whenever `refresh_s` pulses (i.e. at the end of each measurement cycle), while CSN is high
+- **Readout:** pull CSN low and clock out 16 bits at any rate the master chooses; MISO is enabled only while CSN is low (`miso_en` controls the tristate)
 
 ## How to test
 
@@ -46,7 +49,7 @@ End of frame is detected by the receiver observing SCLK returning to idle-low af
 
 - HC-SR04 ultrasonic distance sensor
 - 4-digit common-cathode 7-segment display (with current-limiting resistors on segments)
-- Optional: SPI-capable microcontroller or logic analyser on `uio[6]` (SCLK) and `uio[7]` (MOSI)
+- Optional: SPI master (microcontroller, FPGA, or logic analyser) connected to `uio[5]` (CSN), `uio[6]` (SCLK), `uio[7]` (MISO)
 
 ### Pin connections
 
@@ -58,9 +61,9 @@ End of frame is detected by the receiver observing SCLK returning to idle-low af
 | `ui[3]` SW_aux | Input | Display mode: 0 = BCD decimal, 1 = hex |
 | `uio[0–3]` Digit 0–3 | Output | Common-cathode digit select (active-low) |
 | `uio[4]` TRIGGER | Output | HC-SR04 TRIG pin |
-| `uio[5]` Echo copy | Output | Echo passthrough (debug / oscilloscope) |
-| `uio[6]` SCLK | Output | SPI clock to microcontroller / logic analyser |
-| `uio[7]` MOSI | Output | SPI data to microcontroller / logic analyser |
+| `uio[5]` CSN | Input | SPI chip select from master (active-low) |
+| `uio[6]` SCLK | Input | SPI clock from master |
+| `uio[7]` MISO | Output | SPI data to master (tristated when CSN high) |
 | `uo[0–6]` Seg A–G | Output | 7-segment display segments (active-low) |
 | `uo[7]` DP | Output | Decimal point (active-low) |
 
@@ -71,5 +74,6 @@ End of frame is detected by the receiver observing SCLK returning to idle-low af
 3. Press `ui[2]` (START_STOP) to begin measurements.
 4. Point the HC-SR04 at an object. The display updates with the distance in centimetres.
 5. Toggle `ui[3]` (SW_aux) to switch between decimal (BCD) and hexadecimal display.
-6. To read distance digitally, connect a SPI receiver to `uio[6]` (SCLK) and `uio[7]` (MOSI).
-   Each 16-bit frame carries the distance in centimetres as an unsigned integer (bits [10:0]).
+6. To read distance digitally, connect a SPI master to `uio[5]` (CSN), `uio[6]` (SCLK), `uio[7]` (MISO).
+   Pull CSN low and clock out 16 bits (mode 0, MSB first). The value in bits [10:0] is the distance
+   in centimetres. The register holds the last completed measurement and is safe to read at any time.
