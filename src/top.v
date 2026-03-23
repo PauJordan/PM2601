@@ -128,21 +128,21 @@ reg trig_s;
 
     if((rst == 1'b1)) begin
       trig_s <= 1'b0;
-      count_up = 0;
-      count_t = 249899;
+      count_up <= 0;
+      count_t <= 249899;
     end
     else if((enable_trig == 1'b1)) begin
       if((trig_s == 1'b0)) begin
-        count_t = count_t + 1;
+        count_t <= count_t + 1;
         if((count_t >= 249900)) begin
-          count_t = 0;
+          count_t <= 0;
           trig_s <= 1'b1;
         end
       end
       else begin
-        count_up = count_up + 1;
+        count_up <= count_up + 1;
         if((count_up >= 100)) begin
-          count_up = 0;
+          count_up <= 0;
           trig_s <= 1'b0;
         end
       end
@@ -568,21 +568,21 @@ wire [23:0] data;
 
   always @(*) begin
     case(dcontrol)
-      2'b00 : dout <= data[3:0];
-      2'b01 : dout <= data[7:4];
-      2'b10 : dout <= data[11:8];
-      2'b11 : dout <= data[15:12];
+      2'b00 : dout = data[3:0];
+      2'b01 : dout = data[7:4];
+      2'b10 : dout = data[11:8];
+      2'b11 : dout = data[15:12];
       default : dout <= 4'b0000;
     endcase
   end
 
   always @(*) begin
     case(dcontrol)
-      2'b00 : daux <= data[17:16];
-      2'b01 : daux <= data[19:18];
-      2'b10 : daux <= data[21:20];
-      2'b11 : daux <= data[23:22];
-      default : daux <= 2'b00;
+      2'b00 : daux = data[17:16];
+      2'b01 : daux = data[19:18];
+      2'b10 : daux = data[21:20];
+      2'b11 : daux = data[23:22];
+      default : daux = 2'b00;
     endcase
   end
 
