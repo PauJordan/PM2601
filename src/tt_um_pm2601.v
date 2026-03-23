@@ -11,10 +11,12 @@
 //
 //   uio_out[3:0] -> xif[3:0]   (digit select, one-hot active-low)
 //   uio_out[4]   -> trig       (ultrasonic trigger pulse output)
-//   uio_out[5]   -> echo_copia (echo passthrough for debug)
-//   uio_out[6]   -> spi_sclk  (spi clock, 1.25 mhz)
-//   uio_out[7]   -> spi_mosi  (spi data, msb first, 16-bit frame: 5'b0 + distancia[10:0])
-//   uio_oe[7:0]  -> 8'hff     (all bidir pins configured as outputs)
+//   uio_in[5]    <- spi_csn   (spi chip select, active-low, from master)
+//   uio_in[6]    <- spi_sclk  (spi clock from master)
+//   uio_out[7]   -> spi_miso  (spi data out, tristated when csn high)
+//   uio_oe[7]    -> spi_miso_en (1 when csn low)
+//   uio_oe[6:5]  -> 0 (inputs)
+//   uio_oe[4:0]  -> 1 (outputs: trig + xif[3:0])
 
 `default_nettype none
 
@@ -66,9 +68,9 @@ module tt_um_pm2601 (
     assign spi_csn_w = uio_in[5];
     assign spi_sclk_w = uio_in[6];
     assign uio_out = {spi_miso_w, 2'b0, trig_w, xif_w};
-    assign uio_oe  = {spi_miso_en_w, 1'b0, 6'hff};
+    assign uio_oe  = {spi_miso_en_w, 2'b00, 5'b11111};
 
     // suppress unused signal warnings
-    wire _unused = &{ena, xif_copia_w, distancia_w[10], 1'b0};
+    wire _unused = &{ena, xif_copia_w, distancia_w[10], echo_copia_w, 1'b0};
 
 endmodule
